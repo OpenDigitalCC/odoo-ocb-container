@@ -1,0 +1,88 @@
+services:
+  odoo-17:
+    container_name: odoo-17
+    build:
+      context: .
+      args:
+        # settings mapped from build time to make available also at run time
+        ODOO_UID: ${ODOO_UID}
+        ODOO_USER: ${ODOO_USER}
+        ODOO_BASE_DIR: ${ODOO_BASE_DIR}
+        ODOO_REPO: ${ODOO_REPO}
+        ODOO_BRANCH: ${ODOO_BRANCH}
+        ODOO_SRC_DIR: ${ODOO_SRC_DIR}
+        ODOO_DATA_DIR: ${ODOO_DATA_DIR}
+    environment:
+#      ODOO_REPO: https://github.com/OCA/OCB.git # OCB, Required.
+      # ODOO_REPO: https://github.com/odoo/odoo.git # Odoo Required.
+#      ODOO_BRANCH: "17.0"  # Set desired runtime branch here. required
+      # All 'ODOO_CONF_' environment vars are converted in to odoo.conf variables
+      # Any variables expanded here are taken from .env
+      ODOO_UID: ${ODOO_UID}
+      ODOO_USER: ${ODOO_USER}
+      ODOO_CONF_DB_NAME: ${ODOO_BRANCH}_default  # Required
+      ODOO_CONF_DB_HOST: odoo-db  # Required
+      ODOO_CONF_DB_PORT: 5432
+      ODOO_CONF_DB_USER: ${ODOO_DB_USER}  # Required, set in .env
+      ODOO_CONF_DB_PASSWORD: ${ODOO_DB_PASSWORD} # Set in .env
+      ODOO_CONF_ADMIN_PASSWD: ${ODOO_ADMIN_PASSWD} # Set to random 32 char base64 string if unset
+      ODOO_CONF_LOG_LEVEL: info
+      ODOO_CONF_DATA_DIR: ${ODOO_DATA_DIR}/${ODOO_BRANCH}
+      # ODOO_CONF_LOGFILE: ${ODOO_DATA_DIR}/${ODOO_BRANCH}/odoo.log # alteernativ e to container stdout logging
+      ODOO_CONF_ADDONS_PATH: /srv/odoo/addons/${ODOO_BRANCH}/oca_addons,/srv/odoo/addons/${ODOO_BRANCH}/extra_addons,/srv/odoo/source/${ODOO_BRANCH}/odoo/addons,/srv/odoo/source/${ODOO_BRANCH}/addons
+      ODOO_CONF_WORKERS: 2
+      ODOO_CONF_MAX_CRON_THREADS: 1
+      ODOO_CONF_PROXY_MODE: False           # change to True when behind a proxy
+      ODOO_CONF_XMLRPC_INTERFACE: 0.0.0.0   # Bind to all addresses
+      ODOO_CONF_LIMIT_REQUEST_FIELDS: 100   # Guard against bad requests
+      ODOO_CONF_LIMIT_REQUEST_FIELD_SIZE: 8190  # Guard against bad requests
+      ODOO_CONF_XMLRPC_PORT: 8171
+      ODOO_CONF_GEVENT_PORT: 8172
+      ODOO_CONF_LONGPOLLINGPORT: 8172
+      ODOO_CONF_LIMIT_MEMORY_HARD: 2684354560
+      ODOO_CONF_LIMIT_MEMORY_SOFT: 2147483648
+      ODOO_CONF_LIMIT_TIME_CPU: 60
+      ODOO_CONF_LIMIT_TIME_REAL: 120
+      #; DB Filtering
+      # ODOO_CONF_DBFILTER: ^%h$
+      # ODOO_CONF_NO_DATABASE_LIST: true
+    depends_on:
+      odoo-db:
+        condition: service_healthy
+    ports:
+      - "8171:8171"
+      - "8172:8172"
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost:${WEB_PORT}/health"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 5
+    volumes:
+      - ./addons:/srv/odoo/addons # external addons
+      - ./data:/srv/odoo/data # File store and sessions etc
+      - ./conf:/srv/odoo/conf # config files
+#    logging:
+#      driver: syslog
+#      options:
+#        syslog-address: "tcp://your-syslog-server:514"
+#        tag: "odoo"
+
+  odoo-db:
+    image: postgres:latest
+    container_name: odoo-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${ODOO_DB_USER}
+      POSTGRES_PASSWORD: ${ODOO_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "/usr/bin/pg_isready -U ${ODOO_DB_USER} -h localhost"]
+      interval: 10s
+      timeout: 2s
+      retries: 2
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+volumes: {}
+
+
+
+

@@ -18,7 +18,7 @@ This repository provides a production-ready stack for running Odoo or OCB with P
 ## Quick Start
 
 1. Clone this repository or copy the files into your project directory.
-2. Edit `.env` file (if needed) to set your preferred Odoo and database credentials[^1_3].
+2. Edit `.env` file to set your preferred Odoo and database credentials[^1_3].
 3. Build and start the stack:
 
 ```bash
@@ -30,13 +30,12 @@ docker compose up -d
 
 ### Environment Variables
 
-- `.env` file
+- `.env` file (see example.env)
     - `ODOO_REPO`: Odoo source repository (OCA/OCB or official Odoo)
     - `ODOO_BRANCH`: Odoo version/branch (default: `17.0`)
     - `ODOO_UID`, `ODOO_USER`: User and UID for Odoo process
     - `ODOO_BASE_DIR`, `ODOO_SRC_DIR`, `ODOO_DATA_DIR`: Paths for Odoo data and source
     - `ODOO_DB_USER`, `ODOO_DB_PASSWORD`: Database credentials[^1_3]
-
 
 ### Docker Compose
 
@@ -84,7 +83,8 @@ docker compose up -d
 
 ## Security
 
-- Admin password: Generated automatically if not set
+- Server admin password: Generated automatically if not set
+  - NOTE: The password is recorded in the logs
 - Database password: Must be set in `.env`
 - Resource limits: Prevents excessive resource usage
 
